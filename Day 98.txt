@@ -1,0 +1,84 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define MAX 100
+
+typedef struct {
+    int start, end;
+} Interval;
+
+// Comparator for sorting by start time
+int cmp(const void *a, const void *b) {
+    Interval *x = (Interval *)a;
+    Interval *y = (Interval *)b;
+    return x->start - y->start;
+}
+
+// Min heap
+int heap[MAX], size = 0;
+
+void swap(int *a, int *b) {
+    int t = *a; *a = *b; *b = t;
+}
+
+void heapifyUp(int i) {
+    while (i > 0 && heap[(i - 1)/2] > heap[i]) {
+        swap(&heap[i], &heap[(i - 1)/2]);
+        i = (i - 1)/2;
+    }
+}
+
+void heapifyDown(int i) {
+    int smallest = i;
+    int left = 2*i + 1, right = 2*i + 2;
+
+    if (left < size && heap[left] < heap[smallest])
+        smallest = left;
+    if (right < size && heap[right] < heap[smallest])
+        smallest = right;
+
+    if (smallest != i) {
+        swap(&heap[i], &heap[smallest]);
+        heapifyDown(smallest);
+    }
+}
+
+void push(int x) {
+    heap[size++] = x;
+    heapifyUp(size - 1);
+}
+
+void pop() {
+    heap[0] = heap[--size];
+    heapifyDown(0);
+}
+
+int top() {
+    return heap[0];
+}
+
+int main() {
+    int n;
+    scanf("%d", &n);
+
+    Interval arr[n];
+    for (int i = 0; i < n; i++) {
+        scanf("%d %d", &arr[i].start, &arr[i].end);
+    }
+
+    // Step 1: Sort by start time
+    qsort(arr, n, sizeof(Interval), cmp);
+
+    // Step 2: Use min heap
+    push(arr[0].end);
+
+    for (int i = 1; i < n; i++) {
+        if (arr[i].start >= top()) {
+            pop(); // reuse room
+        }
+        push(arr[i].end);
+    }
+
+    printf("%d\n", size);
+    return 0;
+}
